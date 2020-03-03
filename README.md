@@ -51,7 +51,7 @@ I know functional programming usually involves tail recursion and other things..
 
 
 	// Immutable values
-	let X: integer = 1234;
+	let X: integer = 7;
 
 	// Main function
 	io fun main(): void
@@ -71,4 +71,4 @@ I know functional programming usually involves tail recursion and other things..
 
 ## Usage
 
-	`hethkerp <file name>`
+	hethkerp <file name>

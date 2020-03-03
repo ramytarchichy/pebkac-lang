@@ -11,13 +11,13 @@ std::vector<std::pair<type, std::string>> lexing::get_tokens(const std::string& 
 	// Regex query corresponding to each type of token/lexeme. Yes, regex is fugly.
 	const static std::array<const std::pair<const type, const std::regex>, 8> regex_queries = {
 		std::make_pair(type::COMMENT, std::regex("(\\/{2,}.*)|(\\/\\*[\\s\\S]*?\\*\\/)")),
-		std::make_pair(type::NUMERIC_LITERAL, std::regex("\\d*\\.?\\d+")),
 		std::make_pair(type::IDENTIFIER, std::regex("\\w+")),
 		std::make_pair(type::OPERATOR, std::regex("[+\\-*/%]|!=|==|&&|\\|\\|")),
 		std::make_pair(type::UNARY_OPERATOR, std::regex("[+\\-!]")),
 		std::make_pair(type::KEYWORD, std::regex("(fun|io|return|let|if|else)\\b")),
 		std::make_pair(type::BRACKET, std::regex("[(){}<>[\\]]")),
 		std::make_pair(type::SYNTATIC_ELEMENT, std::regex(":|;|->|=")),
+		std::make_pair(type::NUMERIC_LITERAL, std::regex("\\d*\\.?\\d+")),
 	};
 
 	// Loop through the source code and parse it into tokens
@@ -27,6 +27,7 @@ std::vector<std::pair<type, std::string>> lexing::get_tokens(const std::string& 
 	{
 		// Try every single regex
 		size_t i = 0;
+		size_t fails = 0;
 		std::array<std::pair<size_t, std::string>, regex_queries.size()> query_results;
 		for(const auto& p : regex_queries)
 		{
@@ -38,9 +39,13 @@ std::vector<std::pair<type, std::string>> lexing::get_tokens(const std::string& 
 			else
 			{
 				query_results[i] = std::make_pair(std::numeric_limits<size_t>::max(), "");
+				++fails;
 			}
 			++i;
 		}
+
+		//If no more tokens exist, end the loop
+		if (fails == regex_queries.size()) break;
 
 		// Get whichever regex matches better
 		size_t index = std::distance(query_results.begin(), std::min_element(query_results.begin(), query_results.end(),
