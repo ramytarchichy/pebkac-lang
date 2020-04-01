@@ -4,35 +4,34 @@
 #include <limits>
 #include <algorithm>
 
-using namespace lexing;
+using namespace pebkac::lexing;
 
-std::vector<std::pair<type, std::string>> lexing::get_tokens(const std::string& source)
+std::queue<token> tokenize(const std::string& source)
 {
 	// Regex query corresponding to each type of token/lexeme. Yes, regex is fugly.
-	const static std::array<const std::pair<const type, const std::regex>, 8> regex_queries = {
-		std::make_pair(type::COMMENT, std::regex("(\\/{2,}.*)|(\\/\\*[\\s\\S]*?\\*\\/)")),
-		std::make_pair(type::IDENTIFIER, std::regex("\\w+")),
-		std::make_pair(type::OPERATOR, std::regex("[+\\-*/%]|!=|==|&&|\\|\\|")),
-		std::make_pair(type::UNARY_OPERATOR, std::regex("[+\\-!]")),
-		std::make_pair(type::KEYWORD, std::regex("(fun|io|return|let|if|else)\\b")),
-		std::make_pair(type::BRACKET, std::regex("[(){}<>[\\]]")),
-		std::make_pair(type::SYNTATIC_ELEMENT, std::regex(":|;|->|=")),
-		std::make_pair(type::NUMERIC_LITERAL, std::regex("\\d*\\.?\\d+")),
+	// Order of elements matters! Later elements in the list have higher priority.
+	const static std::array<const std::pair<const token_type, const std::regex>, 8> regex_queries = {
+		std::make_pair(token_type::COMMENT, std::regex("(\\/{2,}.*)|(\\/\\*[\\s\\S]*?\\*\\/)")),
+		std::make_pair(token_type::IDENTIFIER, std::regex("\\w+")),
+		std::make_pair(token_type::OPERATOR, std::regex("[+\\-*/%]|!=|==|<|>|<=|>=|&&|\\|\\|")),
+		std::make_pair(token_type::UNARY_OPERATOR, std::regex("[+\\-!]")),
+		std::make_pair(token_type::KEYWORD, std::regex("(fun|io|return|let|if|else|false|true)\\b")),
+		std::make_pair(token_type::BRACKET, std::regex("[(){}[\\]]")),
+		std::make_pair(token_type::SYNTATIC_ELEMENT, std::regex(":|;|->|=|,")),
+		std::make_pair(token_type::NUMERIC_LITERAL, std::regex("\\d*\\.?\\d+")),
 	};
 
 	// Loop through the source code and parse it into tokens
-	std::vector<std::pair<type, std::string>> result = {};
-	std::string::const_iterator current = source.begin();
-	while(current != source.end())
+	std::queue<token> result = {};
+	for(std::string::const_iterator current = source.begin(); current != source.end();)
 	{
 		// Try every single regex
 		size_t i = 0;
 		size_t fails = 0;
 		std::array<std::pair<size_t, std::string>, regex_queries.size()> query_results;
-		for(const auto& p : regex_queries)
+		for(const auto& [t, r] : regex_queries)
 		{
-			auto it = std::sregex_iterator(current, source.end(), p.second);
-			if (it != std::sregex_iterator())
+			if (auto it = std::sregex_iterator(current, source.end(), r); it != std::sregex_iterator())
 			{
 				query_results[i] = std::make_pair(it->position(), it->str());
 			}
@@ -45,18 +44,19 @@ std::vector<std::pair<type, std::string>> lexing::get_tokens(const std::string& 
 		}
 
 		//If no more tokens exist, end the loop
-		if (fails == regex_queries.size()) break;
+		if (fails == regex_queries.size())
+			break;
 
 		// Get whichever regex matches better
 		size_t index = std::distance(query_results.begin(), std::min_element(query_results.begin(), query_results.end(),
-		[](const std::pair<size_t, std::string>& a, const std::pair<size_t, std::string>& b){
-			if (a.first != b.first)
-				return a.first < b.first;
-			return a.second.length() >= b.second.length();
-		}));
+			[](const std::pair<size_t, std::string>& a, const std::pair<size_t, std::string>& b){
+				if (a.first != b.first)
+					return a.first < b.first;
+				return a.second.length() >= b.second.length();
+			}));
 
 		//Update result
-		result.push_back({regex_queries[index].first, query_results[index].second});
+		result.push(token(regex_queries[index].first, query_results[index].second));
 		current += query_results[index].first + query_results[index].second.length();
 	}
 
