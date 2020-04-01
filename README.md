@@ -1,4 +1,4 @@
-# Hethkerp
+# PEBKAC-Lang
 
 *Dollar store knockoff of Haskell. Not made in China, surprisingly.*
 
@@ -13,7 +13,7 @@ This is a simple compiler/interpreter for a VERY basic functional programming la
 - Type inference
 - Function overloading
 
-I know functional programming usually involves tail recursion and other things... I'm not going to bother implementing any of that because I have a deadline to meet, and no one will ever use this thing afterwards anyway.
+I know functional programming usually involves tail recursion and other things... I'm not going to bother implementing any of that because I have a deadline to meet, and no one will ever use this thing afterwards anyway (I hope).
 
 ## Syntax
 
@@ -71,4 +71,4 @@ I know functional programming usually involves tail recursion and other things..
 
 ## Usage
 
-	hethkerp <file name>
+	pebkacc <file name>

@@ -1,10 +1,10 @@
 COMPILE_FILES=main.cpp lexing.cpp
-DEPEND_FILES=$(COMPILE_FILES) Makefile lexing.hpp
+DEPEND_FILES=$(COMPILE_FILES) Makefile lexing.hpp ast.hpp
 
-OUT_FILE=out
+OUT_FILE=pebkacc
 DBG_FILE=$(OUT_FILE)_dbg
 
-COMPILER=clang++ $(COMPILE_FILES)
+COMPILER=clang++ --std=c++17 $(COMPILE_FILES)
 
 $(OUT_FILE): $(DEPEND_FILES)
 	$(COMPILER) -o $(OUT_FILE) -march=native -O2
