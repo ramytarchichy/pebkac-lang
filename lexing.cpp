@@ -4,21 +4,56 @@
 #include <limits>
 #include <algorithm>
 
+using namespace pebkac;
 using namespace pebkac::lexing;
 
-std::queue<token> tokenize(const std::string& source)
+
+token::token(
+	token_type type,
+	const std::string& value) noexcept:
+	type(type),
+	value(value)
+{ }
+
+
+bool token::operator == (const token& other) const noexcept
+{
+	return type == other.type && value == other.value;
+}
+
+
+bool token::operator != (const token& other) const noexcept
+{
+	return !(*this == other);
+}
+
+
+const token_type& token::get_type() const noexcept
+{
+	return type;
+}
+
+
+const std::string& token::get_value() const noexcept
+{
+	return value;
+}
+
+
+std::queue<token> lexing::tokenize(const std::string& source)
 {
 	// Regex query corresponding to each type of token/lexeme. Yes, regex is fugly.
 	// Order of elements matters! Later elements in the list have higher priority.
-	const static std::array<const std::pair<const token_type, const std::regex>, 8> regex_queries = {
+	const static std::array<const std::pair<const token_type, const std::regex>, 9> regex_queries = {
 		std::make_pair(token_type::COMMENT, std::regex("(\\/{2,}.*)|(\\/\\*[\\s\\S]*?\\*\\/)")),
 		std::make_pair(token_type::IDENTIFIER, std::regex("\\w+")),
 		std::make_pair(token_type::OPERATOR, std::regex("[+\\-*/%]|!=|==|<|>|<=|>=|&&|\\|\\|")),
 		std::make_pair(token_type::UNARY_OPERATOR, std::regex("[+\\-!]")),
-		std::make_pair(token_type::KEYWORD, std::regex("(fun|io|return|let|if|else|false|true)\\b")),
+		std::make_pair(token_type::KEYWORD, std::regex("(fun|io|return|let|if|else)\\b")),
 		std::make_pair(token_type::BRACKET, std::regex("[(){}[\\]]")),
 		std::make_pair(token_type::SYNTATIC_ELEMENT, std::regex(":|;|->|=|,")),
 		std::make_pair(token_type::NUMERIC_LITERAL, std::regex("\\d*\\.?\\d+")),
+		std::make_pair(token_type::BOOLEAN_LITERAL, std::regex("(true|false)\\b")),
 	};
 
 	// Loop through the source code and parse it into tokens

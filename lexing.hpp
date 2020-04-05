@@ -11,6 +11,7 @@ namespace pebkac::lexing
 	{
 		COMMENT,
 		NUMERIC_LITERAL,
+		BOOLEAN_LITERAL,
 		IDENTIFIER,
 		OPERATOR,
 		UNARY_OPERATOR,
@@ -19,10 +20,18 @@ namespace pebkac::lexing
 		SYNTATIC_ELEMENT,
 	};
 
-	struct token
+	class token
 	{
-		token(token_type type, const std::string& value) noexcept: type(type), value(value) { }
+	public:
+		token(token_type type, const std::string& value) noexcept;
 
+		bool operator == (const token& other) const noexcept;
+		bool operator != (const token& other) const noexcept;
+
+		const token_type& get_type() const noexcept;
+		const std::string& get_value() const noexcept;
+
+	private:
 		const token_type type;
 		const std::string value;
 	};

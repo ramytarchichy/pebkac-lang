@@ -1,5 +1,5 @@
-COMPILE_FILES=main.cpp lexing.cpp
-DEPEND_FILES=$(COMPILE_FILES) Makefile lexing.hpp ast.hpp
+COMPILE_FILES=main.cpp lexing.cpp ast.cpp nodes.cpp
+DEPEND_FILES=$(COMPILE_FILES) Makefile lexing.hpp ast.hpp nodes.hpp
 
 OUT_FILE=pebkacc
 DBG_FILE=$(OUT_FILE)_dbg
