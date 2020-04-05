@@ -215,7 +215,7 @@ std::shared_ptr<let_node> parser::parse_let()
 std::shared_ptr<parameter_node> parser::parse_parameter()
 {
 	// <name> : <type> [= <expression>]
-	const std::string& name = consume_token(lexing::token_type::IDENTIFIER).get_value();
+	const std::string name = consume_token(lexing::token_type::IDENTIFIER).get_value();
 	consume_token(lexing::token_type::SYNTATIC_ELEMENT, ":");
 	const std::shared_ptr<type_node> type = parse_type();
 

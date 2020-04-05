@@ -4,6 +4,59 @@
 
 using namespace pebkac::ast;
 
+// Note: I don't need a fancy json_builder class. This is just for debugging. As a result,
+// the following to_json() functions are gonna be fugly. I don't give a damn about that.
+
+std::string to_json(specifier s)
+{
+	if (s == specifier::IO) return "\"IO\"";
+
+	throw std::runtime_error("JSON: unknown specifier");
+}
+
+
+std::string to_json(const std::unordered_set<specifier>& specifiers)
+{
+	std::string str = "";
+	for(specifier s : specifiers)
+	{
+		str += (str.length()?", ":"") + to_json(s);
+	}
+	return "[" + str + "]";
+}
+
+
+std::string to_json(operation op)
+{
+	if (op == operation::AND) return "\"AND\"";
+	if (op == operation::OR) return "\"OR\"";
+	if (op == operation::ADD) return "\"ADD\"";
+	if (op == operation::SUBTRACT) return "\"SUBTRACT\"";
+	if (op == operation::MULTIPLY) return "\"MULTIPLY\"";
+	if (op == operation::DIVIDE) return "\"DIVIDE\"";
+	if (op == operation::MODULUS) return "\"MODULUS\"";
+	if (op == operation::EQUAL) return "\"EQUAL\"";
+	if (op == operation::NOT_EQUAL) return "\"NOT_EQUAL\"";
+	if (op == operation::LESS_THAN) return "\"LESS_THAN\"";
+	if (op == operation::GREATER_THAN) return "\"GREATER_THAN\"";
+	if (op == operation::LESS_OR_EQUAL) return "\"LESS_OR_EQUAL\"";
+	if (op == operation::GREATER_OR_EQUAL) return "\"GREATER_OR_EQUAL\"";
+
+	throw std::runtime_error("JSON: unknown operation");
+}
+
+
+template<class T>
+std::string to_json(const std::vector<std::shared_ptr<T>>& vec)
+{
+	std::string str = "";
+	for(const std::shared_ptr<T>& i : vec)
+	{
+		str += (str.length()?", ":"") + i->to_json();
+	}
+	return "[" + str + "]";
+}
+
 
 function_type_node::function_type_node(
 	const std::unordered_set<specifier>& specifiers,
@@ -17,8 +70,7 @@ function_type_node::function_type_node(
 
 std::string function_type_node::to_json() const
 {
-	//TODO: specifiers, parameters
-	return "{\"node\":\"function_type\", \"specifiers\":[], \"parameters\":[], \"output\":" + output->to_json() + "}";
+	return "{\"node\":\"function_type\", \"specifiers\":" + ::to_json(specifiers) + ", \"parameters\":" + ::to_json(parameters) + ", \"output\":" + output->to_json() + "}";
 }
 
 
@@ -54,8 +106,7 @@ boolean_literal_node::boolean_literal_node(
 
 std::string boolean_literal_node::to_json() const
 {
-	//TODO: figure out this error
-	//return "{\"node\":\"boolean_literal\", \"value\":" + (value ? "true" : "false") + "}";
+	return "{\"node\":\"boolean_literal\", \"value\":" + std::string(value?"true":"false") + "}";
 }
 
 
@@ -83,8 +134,7 @@ operator_node::operator_node(
 
 std::string operator_node::to_json() const
 {
-	//TODO: operation
-	return "{\"node\":\"operator\", \"operation\": \"\", \"operand_a\":" + operand_a->to_json() + ", \"operand_b\":" + operand_b->to_json() + "}";
+	return "{\"node\":\"operator\", \"operation\":" + ::to_json(operation) + ", \"operand_a\":" + operand_a->to_json() + ", \"operand_b\":" + operand_b->to_json() + "}";
 }
 
 
@@ -96,8 +146,7 @@ block_node::block_node(
 
 std::string block_node::to_json() const
 {
-	//TODO: statements
-	return "{\"node\":\"block_node\", \"statements\":[]}";
+	return "{\"node\":\"block\", \"statements\":" + ::to_json(statements) + "}";
 }
 
 
@@ -175,8 +224,7 @@ lambda_node::lambda_node(
 
 std::string lambda_node::to_json() const
 {
-	//TODO: parameters
-	return "{\"node\":\"lambda\", \"parameters\":[], \"statement\":" + statement->to_json() + "}";
+	return "{\"node\":\"lambda\", \"parameters\":" + ::to_json(parameters) + ", \"statement\":" + statement->to_json() + "}";
 }
 
 
@@ -196,15 +244,7 @@ function_node::function_node(
 
 std::string function_node::to_json() const
 {
-	const std::string p = "";/*std::accumulate<std::string>(std::begin(parameters), std::end(parameters), "",
-		[](const std::string& acc, const std::shared_ptr<parameter_node>& param)
-		{
-			return acc + param->to_json() + ", ";
-		}
-	);*/
-
-	//TODO: specifiers, parameters
-	return "{\"node\":\"function\", \"specifiers\":[], \"name\":\"" + name + "\", \"parameters\":[" + p + "], \"return_type\":" + return_type->to_json() + ", \"body\":" + body->to_json() + "}";
+	return "{\"node\":\"function\", \"specifiers\":" + ::to_json(specifiers) + ", \"name\":\"" + name + "\", \"parameters\":" + ::to_json(parameters) + ", \"return_type\":" + return_type->to_json() + ", \"body\":" + body->to_json() + "}";
 }
 
 
@@ -218,8 +258,7 @@ function_call_node::function_call_node(
 
 std::string function_call_node::to_json() const
 {
-	//TODO: arguments
-	return "{\"node\":\"function_call\", \"function\":" + function->to_json() + ", \"arguments\":[]}";
+	return "{\"node\":\"function_call\", \"function\":" + function->to_json() + ", \"arguments\":" + ::to_json(arguments) + "}";
 }
 
 
