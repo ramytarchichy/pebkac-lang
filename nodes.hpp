@@ -283,7 +283,7 @@ namespace pebkac::ast
 		std::string to_json() const;
 
 	private:
-		const std::shared_ptr<expression_node>& function;
+		const std::shared_ptr<expression_node> function;
 		const std::vector<std::shared_ptr<expression_node>> arguments;
 	};
 

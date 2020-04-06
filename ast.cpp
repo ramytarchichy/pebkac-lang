@@ -212,8 +212,8 @@ std::vector<std::shared_ptr<statement_node>> parser::parse_statements()
 
 std::vector<std::shared_ptr<expression_node>> parser::parse_expressions()
 {
-	std::vector<std::shared_ptr<expression_node>> expressions = {};
-	if (peek_token().get_type() == lexing::token_type::IDENTIFIER)
+	std::vector<std::shared_ptr<expression_node>> expressions = { };
+	if (peek_token() != lexing::token(lexing::token_type::BRACKET, ")"))
 	{
 		expressions.push_back(parse_expression());
 		while(peek_token() == lexing::token(lexing::token_type::SYNTATIC_ELEMENT, ","))
