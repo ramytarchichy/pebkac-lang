@@ -179,7 +179,11 @@ std::shared_ptr<statement_node> parser::parse_statement()
 		else if (t == lexing::token(lexing::token_type::SYNTATIC_ELEMENT, ";"))
 			return parse_empty_statement();
 		else
-			return parse_function_call();
+		{
+			const auto result = parse_expression();
+			consume_token(lexing::token_type::SYNTATIC_ELEMENT, ";");
+			return result;
+		}
 	}
 
 	throw parsing_error("Cannot find statement");
@@ -360,9 +364,9 @@ std::shared_ptr<conditional_node> parser::parse_conditional()
 	// if ( <condition> ) <branch_true> [else <branch_false>]
 
 	consume_token(lexing::token_type::KEYWORD, "if");
-	consume_token(lexing::token_type::SYNTATIC_ELEMENT, "(");
+	consume_token(lexing::token_type::BRACKET, "(");
 	const auto expression = parse_expression();
-	consume_token(lexing::token_type::SYNTATIC_ELEMENT, ")");
+	consume_token(lexing::token_type::BRACKET, ")");
 	const auto branch_true = parse_statement();
 	
 	std::shared_ptr<statement_node> branch_false = nullptr;
@@ -381,9 +385,9 @@ std::shared_ptr<conditional_expression_node> parser::parse_conditional_expressio
 	// if ( <condition> ) <branch_true> else <branch_false>
 
 	consume_token(lexing::token_type::KEYWORD, "if");
-	consume_token(lexing::token_type::SYNTATIC_ELEMENT, "(");
+	consume_token(lexing::token_type::BRACKET, "(");
 	const auto expression = parse_expression();
-	consume_token(lexing::token_type::SYNTATIC_ELEMENT, ")");
+	consume_token(lexing::token_type::BRACKET, ")");
 	const auto branch_true = parse_expression();
 	consume_token(lexing::token_type::KEYWORD, "else");
 	const auto branch_false = parse_expression();

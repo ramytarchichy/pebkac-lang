@@ -48,8 +48,8 @@ namespace pebkac::ast
 		virtual std::string to_json() const = 0;
 	};
 
-	class expression_node: public node { };
 	class statement_node: public node { };
+	class expression_node: public statement_node { };
 	class type_node: public node { };
 
 	class function_type_node: public type_node
@@ -272,7 +272,7 @@ namespace pebkac::ast
 		const std::shared_ptr<block_node> body;
 	};
 	
-	class function_call_node: public expression_node, public statement_node
+	class function_call_node: public expression_node
 	{
 	public:
 		function_call_node(
