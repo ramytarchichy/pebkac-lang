@@ -116,6 +116,9 @@ std::shared_ptr<expression_node> parser::parse_expression()
 				consume_token(lexing::token_type::BRACKET, ")");
 			}
 
+		else if (t == lexing::token(lexing::token_type::KEYWORD, "if"))
+			expressions.push(parse_conditional_expression());
+
 		else if (t.get_type() == lexing::token_type::IDENTIFIER)
 			expressions.push(parse_identifier());
 

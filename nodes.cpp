@@ -202,7 +202,7 @@ conditional_expression_node::conditional_expression_node(
 
 std::string conditional_expression_node::to_json() const
 {
-	return "{\"node\":\"conditional\", \"condition\":" + condition->to_json() + ", \"value_true\":" + value_true->to_json() + ", \"value_false\":" + value_false->to_json() + "}";
+	return "{\"node\":\"conditional_expression\", \"condition\":" + condition->to_json() + ", \"value_true\":" + value_true->to_json() + ", \"value_false\":" + value_false->to_json() + "}";
 }
 
 
