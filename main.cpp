@@ -23,9 +23,10 @@ int main(int argc, const char** argv)
 
 	//Build Abstract Syntax Tree
 	ast::parser parser(tokens);
-	
+	const auto statements = parser.parse_statements();
+
 	//Print AST
-	std::cout << parser.parse_function()->to_json() << std::endl;
+	std::cout << "{\"node\":\"top\", \"statements\":" << ast::to_json(statements) << "}" << std::endl;
 
 	return EXIT_SUCCESS;
 }

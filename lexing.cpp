@@ -40,15 +40,29 @@ const std::string& token::get_value() const noexcept
 }
 
 
+std::string lexing::to_string(token_type t)
+{
+	if (t == token_type::COMMENT) return "COMMENT";
+	if (t == token_type::NUMERIC_LITERAL) return "NUMERIC_LITERAL";
+	if (t == token_type::BOOLEAN_LITERAL) return "BOOLEAN_LITERAL";
+	if (t == token_type::IDENTIFIER) return "IDENTIFIER";
+	if (t == token_type::OPERATOR) return "OPERATOR";
+	if (t == token_type::KEYWORD) return "KEYWORD";
+	if (t == token_type::BRACKET) return "BRACKET";
+	if (t == token_type::SYNTATIC_ELEMENT) return "SYNTATIC_ELEMENT";
+
+	throw std::runtime_error("Unknown token type.");
+}
+
+
 std::queue<token> lexing::tokenize(const std::string& source)
 {
 	// Regex query corresponding to each type of token/lexeme. Yes, regex is fugly.
 	// Order of elements matters! Later elements in the list have higher priority.
-	const static std::array<const std::pair<const token_type, const std::regex>, 9> regex_queries = {
+	const static std::array<const std::pair<const token_type, const std::regex>, 8> regex_queries = {
 		std::make_pair(token_type::COMMENT, std::regex("(\\/{2,}.*)|(\\/\\*[\\s\\S]*?\\*\\/)")),
 		std::make_pair(token_type::IDENTIFIER, std::regex("\\w+")),
-		std::make_pair(token_type::OPERATOR, std::regex("[+\\-*/%]|!=|==|<|>|<=|>=|&&|\\|\\|")),
-		std::make_pair(token_type::UNARY_OPERATOR, std::regex("[+\\-!]")),
+		std::make_pair(token_type::OPERATOR, std::regex("[+\\-*/%!]|!=|==|<|>|<=|>=|&&|\\|\\|")),
 		std::make_pair(token_type::KEYWORD, std::regex("(fun|io|return|let|if|else)\\b")),
 		std::make_pair(token_type::BRACKET, std::regex("[(){}[\\]]")),
 		std::make_pair(token_type::SYNTATIC_ELEMENT, std::regex(":|;|->|=|,")),

@@ -10,57 +10,8 @@ This is a simple compiler/interpreter for a VERY basic functional programming la
 - Higher-order functions
 - Lambda functions
 - Strong typing
-- Type inference
-- Function overloading
 
-I know functional programming usually involves tail recursion and other things... I'm not going to bother implementing any of that because I have a deadline to meet, and no one will ever use this thing afterwards anyway (I hope).
-
-## Syntax
-
-	//Function that returns the factorial of a number:
-	fun factorial(n: integer): integer
-	{
-		if (n == 0)
-		{
-			return 1;
-		}
-		else
-		{
-			return n*factorial(n-1);
-		}
-	}
-
-
-
-	fun is_even(n: integer): boolean
-	{
-		return n % 2 == 0;
-	}
-
-	fun is_odd(n: integer): boolean
-	{
-		return !is_even(n);
-	}
-
-	//Higher order functions!
-	fun validate(n: integer, f: (integer)->boolean): boolean
-	{
-		return f(n);
-	}
-
-
-
-	// Immutable values
-	let X: integer = 7;
-
-	// Main function
-	io fun main(): void
-	{
-		let result = factorial(X);
-		print(result);
-
-		return;
-	}
+I know functional programming usually involves tail recursion optimization and other things... I'm not going to bother implementing any of that because I have a deadline to meet, and no one will ever use this thing afterwards anyway (I hope).
 
 ## Data Types
 
@@ -71,4 +22,9 @@ I know functional programming usually involves tail recursion and other things..
 
 ## Usage
 
-	pebkacc <file name>
+	pebkacc <source> <output> [options]
+
+### Options
+
+	- `--tokens` Outputs tokens in JSON format.
+	- `--ast` Outputs abstract syntax tree in JSON format.

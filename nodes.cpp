@@ -2,12 +2,12 @@
 
 #include <numeric>
 
+using namespace pebkac;
 using namespace pebkac::ast;
 
-// Note: I don't need a fancy json_builder class. This is just for debugging. As a result,
-// the following to_json() functions are gonna be fugly. I don't give a damn about that.
+// TODO: move all this JSON stuff into another file?
 
-std::string to_json(specifier s)
+std::string ast::to_json(specifier s)
 {
 	if (s == specifier::IO) return "\"IO\"";
 
@@ -15,7 +15,7 @@ std::string to_json(specifier s)
 }
 
 
-std::string to_json(const std::unordered_set<specifier>& specifiers)
+std::string ast::to_json(const std::unordered_set<specifier>& specifiers)
 {
 	std::string str = "";
 	for(specifier s : specifiers)
@@ -26,7 +26,7 @@ std::string to_json(const std::unordered_set<specifier>& specifiers)
 }
 
 
-std::string to_json(operation op)
+std::string ast::to_json(operation op)
 {
 	if (op == operation::AND) return "\"AND\"";
 	if (op == operation::OR) return "\"OR\"";
@@ -46,8 +46,18 @@ std::string to_json(operation op)
 }
 
 
+std::string ast::to_json(unary_operation op)
+{
+	if (op == unary_operation::PLUS) return "\"PLUS\"";
+	if (op == unary_operation::MINUS) return "\"MINUS\"";
+	if (op == unary_operation::NOT) return "\"NOT\"";
+
+	throw std::runtime_error("JSON: unknown unary operation");
+}
+
+
 template<class T>
-std::string to_json(const std::vector<std::shared_ptr<T>>& vec)
+std::string ast::to_json(const std::vector<std::shared_ptr<T>>& vec)
 {
 	std::string str = "";
 	for(const std::shared_ptr<T>& i : vec)
@@ -119,6 +129,20 @@ group_node::group_node(
 std::string group_node::to_json() const
 {
 	return "{\"node\":\"group\", \"expression\":" + expression->to_json() + "}";
+}
+
+
+unary_operator_node::unary_operator_node(
+	unary_operation operation,
+	const std::shared_ptr<expression_node>& operand) noexcept:
+	operation(operation),
+	operand(operand)
+{ }
+
+
+std::string unary_operator_node::to_json() const
+{
+	return "{\"node\":\"unary_operation\", \"operation\":" + ::to_json(operation) + ", \"operand\":" + operand->to_json() + "}";
 }
 
 
@@ -216,15 +240,15 @@ std::string parameter_node::to_json() const
 
 lambda_node::lambda_node(
 	const std::vector<std::shared_ptr<parameter_node>>& parameters,
-	const std::shared_ptr<statement_node>& statement) noexcept:
+	const std::vector<std::shared_ptr<statement_node>>& statements) noexcept:
 	parameters(parameters),
-	statement(statement)
+	statements(statements)
 { }
 
 
 std::string lambda_node::to_json() const
 {
-	return "{\"node\":\"lambda\", \"parameters\":" + ::to_json(parameters) + ", \"statement\":" + statement->to_json() + "}";
+	return "{\"node\":\"lambda\", \"parameters\":" + ::to_json(parameters) + ", \"statement\":" + ::to_json(statements) + "}";
 }
 
 
@@ -271,4 +295,14 @@ return_node::return_node(
 std::string return_node::to_json() const
 {
 	return "{\"node\":\"return\", \"value\":" + value->to_json() + "}";
+}
+
+
+empty_statement_node:: empty_statement_node() noexcept
+{ }
+
+
+std::string empty_statement_node::to_json() const
+{
+	return "{\"node\":\"empty\"}";
 }

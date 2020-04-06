@@ -6,6 +6,13 @@
 
 namespace pebkac::ast
 {
+	enum class unary_operation
+	{
+		PLUS,
+		MINUS,
+		NOT,
+	};
+
 	enum class operation
 	{
 		ADD,
@@ -27,6 +34,13 @@ namespace pebkac::ast
 	{
 		IO,
 	};
+
+	std::string to_json(specifier s);
+	std::string to_json(const std::unordered_set<specifier>& specifiers);
+	std::string to_json(operation op);
+	std::string to_json(unary_operation op);
+	template<class T>
+	std::string to_json(const std::vector<std::shared_ptr<T>>& vec);
 
 	class node
 	{
@@ -105,6 +119,22 @@ namespace pebkac::ast
 
 	private:
 		std::shared_ptr<expression_node> expression;
+	};
+
+
+	class unary_operator_node: public expression_node
+	{
+	public:
+		unary_operator_node(
+			unary_operation operation,
+			const std::shared_ptr<expression_node>& operand
+		) noexcept;
+
+		std::string to_json() const;
+
+	private:
+		const unary_operation operation;
+		const std::shared_ptr<expression_node> operand;
 	};
 
 
@@ -211,14 +241,14 @@ namespace pebkac::ast
 	public:
 		lambda_node(
 			const std::vector<std::shared_ptr<parameter_node>>& parameters,
-			const std::shared_ptr<statement_node>& statement
+			const std::vector<std::shared_ptr<statement_node>>& statements
 		) noexcept;
 
 		std::string to_json() const;
 
 	private:
 		const std::vector<std::shared_ptr<parameter_node>> parameters;
-		const std::shared_ptr<statement_node> statement;
+		const std::vector<std::shared_ptr<statement_node>> statements;
 	};
 
 	class function_node: public statement_node
@@ -268,5 +298,13 @@ namespace pebkac::ast
 
 	private:
 		const std::shared_ptr<expression_node> value;
+	};
+
+	class empty_statement_node: public statement_node
+	{
+	public:
+		empty_statement_node() noexcept;
+
+		std::string to_json() const;
 	};
 }

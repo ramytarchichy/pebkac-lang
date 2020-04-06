@@ -14,11 +14,12 @@ namespace pebkac::lexing
 		BOOLEAN_LITERAL,
 		IDENTIFIER,
 		OPERATOR,
-		UNARY_OPERATOR,
 		KEYWORD,
 		BRACKET,
 		SYNTATIC_ELEMENT,
 	};
+
+	std::string to_string(token_type t);
 
 	class token
 	{

@@ -33,6 +33,15 @@ namespace pebkac::ast
 		std::shared_ptr<numeric_literal_node> parse_numeric_literal();
 		std::shared_ptr<group_node> parse_group();
 		std::shared_ptr<operator_node> parse_operator();
+		std::shared_ptr<unary_operator_node> parse_unary_operator();
+		std::shared_ptr<empty_statement_node> parse_empty_statement();
+
+		//std::vector<specifier> parse_specifiers();
+		std::vector<std::shared_ptr<statement_node>> parse_statements();
+		std::vector<std::shared_ptr<expression_node>> parse_expressions();
+		std::vector<std::shared_ptr<parameter_node>> parse_parameters();
+
+		bool is_end();
 
 	private:
 		std::queue<lexing::token> tokens;

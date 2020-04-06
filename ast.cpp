@@ -1,7 +1,39 @@
 #include "ast.hpp"
 
+#include <stack>
+
 using namespace pebkac;
 using namespace pebkac::ast;
+
+
+unary_operation string_to_unary_operation(const std::string& v)
+{
+	if (v == "+")  return unary_operation::PLUS;
+	if (v == "-")  return unary_operation::MINUS;
+	if (v == "!")  return unary_operation::NOT;
+
+	throw std::runtime_error("Unknown unary operator: " + v);
+}
+
+
+operation string_to_operation(const std::string& v)
+{
+	if (v == "+")  return operation::ADD;
+	if (v == "-")  return operation::SUBTRACT;
+	if (v == "*")  return operation::MULTIPLY;
+	if (v == "/")  return operation::DIVIDE;
+	if (v == "%")  return operation::MODULUS;
+	if (v == "==") return operation::EQUAL;
+	if (v == "!=") return operation::NOT_EQUAL;
+	if (v == "<")  return operation::LESS_THAN;
+	if (v == ">")  return operation::GREATER_THAN;
+	if (v == "<=") return operation::LESS_OR_EQUAL;
+	if (v == ">=") return operation::GREATER_OR_EQUAL;
+	if (v == "&&") return operation::AND;
+	if (v == "||") return operation::OR;
+
+	throw std::runtime_error("Unknown operator: " + v);
+}
 
 
 parser::parser(
@@ -10,15 +42,205 @@ parser::parser(
 { }
 
 
+void shunting_yard(std::stack<std::shared_ptr<expression_node>>& expressions, std::stack<std::string>& operations)
+{
+	while(operations.size())
+	{
+		const auto& op = operations.top();
+
+		if (expressions.size() == 1)
+		{
+			const auto exp = expressions.top();
+			expressions.pop();
+
+			expressions.push(std::make_shared<unary_operator_node>(string_to_unary_operation(op), exp));
+		}
+		else
+		{
+			const auto exp_b = expressions.top();
+			expressions.pop();
+			const auto exp_a = expressions.top();
+			expressions.pop();
+
+			expressions.push(std::make_shared<operator_node>(string_to_operation(op), exp_a, exp_b));
+		}
+
+		operations.pop();
+	}
+}
+
+
+size_t precedence(const std::string& s)
+{
+	if (s == "!")  return 0;
+	if (s == "&&") return 1;
+	if (s == "||") return 1;
+	if (s == "+")  return 2;
+	if (s == "-")  return 2;
+	if (s == "*")  return 3;
+	if (s == "/")  return 3;
+	if (s == "%")  return 3;
+	if (s == "==") return 4;
+	if (s == "!=") return 4;
+	if (s == "<")  return 4;
+	if (s == ">")  return 4;
+	if (s == "<=") return 4;
+	if (s == ">=") return 4;
+
+	throw std::runtime_error("Unknown operator: " + s);
+}
+
+
 std::shared_ptr<expression_node> parser::parse_expression()
 {
+	std::stack<std::shared_ptr<expression_node>> expressions = { };
+	std::stack<std::string> operations = { };
 
+	bool prev_op = false;
+	while(true)
+	{
+		const lexing::token t = peek_token();
+
+		if (t == lexing::token(lexing::token_type::BRACKET, "{"))
+			expressions.push(parse_lambda());
+
+		else if (t == lexing::token(lexing::token_type::BRACKET, "("))
+			if (prev_op || expressions.size() == 0) expressions.push(parse_group());
+			else
+			{
+				const auto previous_exp = expressions.top();
+				expressions.pop();
+
+				consume_token();
+				expressions.push(std::make_shared<function_call_node>(previous_exp, parse_expressions()));
+				consume_token(lexing::token_type::BRACKET, ")");
+			}
+
+		else if (t.get_type() == lexing::token_type::IDENTIFIER)
+			expressions.push(parse_identifier());
+
+		else if (t.get_type() == lexing::token_type::BOOLEAN_LITERAL)
+			expressions.push(parse_boolean_literal());
+
+		else if (t.get_type() == lexing::token_type::NUMERIC_LITERAL)
+			expressions.push(parse_numeric_literal());
+
+		else if (t.get_type() == lexing::token_type::OPERATOR)
+			{
+				//Shunting-Yard algorithm
+				consume_token();
+				const auto& op_b = t.get_value();
+				if (operations.size() > 0)
+				{
+					const auto op_a = operations.top();
+					
+					if (precedence(op_b) < precedence(op_a))
+						shunting_yard(expressions, operations);
+				}
+
+				operations.push(op_b);
+			}
+
+		else
+			break;
+
+		prev_op = t.get_type() == lexing::token_type::OPERATOR;
+	}
+
+	if (prev_op)
+		throw parsing_error("Postfix operator detected.");
+
+	//Shunting-Yard algorithm
+	shunting_yard(expressions, operations);
+
+	if (expressions.size() == 1 && operations.size() == 0)
+		return expressions.top();
+	else
+		throw parsing_error("Malformed expression");
 }
 
 
 std::shared_ptr<statement_node> parser::parse_statement()
 {
-	
+	const lexing::token t = peek_token();
+
+	while(!is_end())
+	{
+		if (t == lexing::token(lexing::token_type::KEYWORD, "if"))
+			return parse_conditional();
+		else if (t == lexing::token(lexing::token_type::KEYWORD, "return"))
+			return parse_return();
+		else if (t == lexing::token(lexing::token_type::KEYWORD, "let"))
+			return parse_let();
+		else if (t == lexing::token(lexing::token_type::BRACKET, "{"))
+			return parse_block();
+		else if (t == lexing::token(lexing::token_type::KEYWORD, "fun") || t == lexing::token(lexing::token_type::KEYWORD, "io"))
+			return parse_function();
+		else if (t == lexing::token(lexing::token_type::SYNTATIC_ELEMENT, ";"))
+			return parse_empty_statement();
+		else
+			return parse_function_call();
+	}
+
+	throw parsing_error("Cannot find statement");
+}
+
+
+std::shared_ptr<type_node> parser::parse_type()
+{
+	if (peek_token() == lexing::token(lexing::token_type::BRACKET, "("))
+	{
+		return parse_function_type();
+	}
+	else
+	{
+		return parse_identifier();
+	}
+}
+
+
+std::vector<std::shared_ptr<statement_node>> parser::parse_statements()
+{
+	std::vector<std::shared_ptr<statement_node>> statements = { };
+	while(!is_end() && peek_token() != lexing::token(lexing::token_type::BRACKET, "}"))
+	{
+		statements.push_back(parse_statement());
+	}
+	return statements;
+}
+
+
+std::vector<std::shared_ptr<expression_node>> parser::parse_expressions()
+{
+	std::vector<std::shared_ptr<expression_node>> expressions = {};
+	if (peek_token().get_type() == lexing::token_type::IDENTIFIER)
+	{
+		expressions.push_back(parse_expression());
+		while(peek_token() == lexing::token(lexing::token_type::SYNTATIC_ELEMENT, ","))
+		{
+			consume_token();
+			expressions.push_back(parse_expression());
+		}
+	}
+
+	return expressions;
+}
+
+
+std::vector<std::shared_ptr<parameter_node>> parser::parse_parameters()
+{
+	std::vector<std::shared_ptr<parameter_node>> parameters = {};
+	if (peek_token().get_type() == lexing::token_type::IDENTIFIER)
+	{
+		parameters.push_back(parse_parameter());
+		while(peek_token() == lexing::token(lexing::token_type::SYNTATIC_ELEMENT, ","))
+		{
+			consume_token();
+			parameters.push_back(parse_parameter());
+		}
+	}
+
+	return parameters;
 }
 
 
@@ -46,28 +268,24 @@ std::shared_ptr<group_node> parser::parse_group()
 }
 
 
+std::shared_ptr<unary_operator_node> parser::parse_unary_operator()
+{
+	// <op> <expression>
+
+	const unary_operation op = string_to_unary_operation(consume_token(lexing::token_type::OPERATOR).get_value());
+	const auto expression = parse_expression();
+
+	return std::make_shared<unary_operator_node>(op, expression);
+}
+
+
 std::shared_ptr<operator_node> parser::parse_operator()
 {
 	// <a> <op> <b>
 
 	const auto a = parse_expression();
-	const std::string v = consume_token(lexing::token_type::OPERATOR).get_value();
+	const operation op = string_to_operation(consume_token(lexing::token_type::OPERATOR).get_value());
 	const auto b = parse_expression();
-
-	operation op;
-	if (v == "+")  op = operation::ADD;
-	if (v == "-")  op = operation::SUBTRACT;
-	if (v == "*")  op = operation::MULTIPLY;
-	if (v == "/")  op = operation::DIVIDE;
-	if (v == "%")  op = operation::MODULUS;
-	if (v == "==") op = operation::EQUAL;
-	if (v == "!=") op = operation::NOT_EQUAL;
-	if (v == "<")  op = operation::LESS_THAN;
-	if (v == ">")  op = operation::GREATER_THAN;
-	if (v == "<=") op = operation::LESS_OR_EQUAL;
-	if (v == ">=") op = operation::GREATER_OR_EQUAL;
-	if (v == "&&") op = operation::AND;
-	if (v == "||") op = operation::OR;
 
 	return std::make_shared<operator_node>(op, a, b);
 }
@@ -82,16 +300,7 @@ std::shared_ptr<function_call_node> parser::parse_function_call()
 	consume_token(lexing::token_type::BRACKET, "(");
 	
 	// Arguments
-	std::vector<std::shared_ptr<expression_node>> arguments = { };
-	if (peek_token() != lexing::token(lexing::token_type::BRACKET, ")"))
-	{
-		arguments.push_back(parse_expression());
-		while(peek_token() == lexing::token(lexing::token_type::SYNTATIC_ELEMENT, ","))
-		{
-			consume_token();
-			arguments.push_back(parse_expression());
-		}
-	}
+	const auto arguments = parse_expressions();
 	consume_token(lexing::token_type::BRACKET, ")");
 
 	return std::make_shared<function_call_node>(function, arguments);
@@ -103,26 +312,12 @@ std::shared_ptr<lambda_node> parser::parse_lambda()
 	// { [params] -> <statement> }
 
 	consume_token(lexing::token_type::BRACKET, "{");
-	//const auto params = parse_parameters();
-	const std::vector<std::shared_ptr<parameter_node>> params = {}; //TODO:
+	const auto params = parse_parameters();
 	consume_token(lexing::token_type::SYNTATIC_ELEMENT, "->");
-	const auto statements = parse_statement();
+	const auto statements = parse_statements();
 	consume_token(lexing::token_type::BRACKET, "}");
 
 	return std::make_shared<lambda_node>(params, statements);
-}
-
-
-std::shared_ptr<type_node> parser::parse_type()
-{
-	try
-	{
-		return parse_identifier();
-	}
-	catch(const parsing_error& e)
-	{
-		return parse_function_type();
-	}
 }
 
 
@@ -251,16 +446,7 @@ std::shared_ptr<function_node> parser::parse_function()
 	consume_token(lexing::token_type::BRACKET, "(");
 	
 	// Parameters
-	std::vector<std::shared_ptr<parameter_node>> parameters = {};
-	if (peek_token().get_type() == lexing::token_type::IDENTIFIER)
-	{
-		parameters.push_back(parse_parameter());
-		while(peek_token() == lexing::token(lexing::token_type::SYNTATIC_ELEMENT, ","))
-		{
-			consume_token();
-			parameters.push_back(parse_parameter());
-		}
-	}
+	const auto parameters = parse_parameters();
 
 	// Return type
 	consume_token(lexing::token_type::BRACKET, ")");
@@ -317,15 +503,31 @@ std::shared_ptr<block_node> parser::parse_block()
 }
 
 
-const lexing::token& parser::peek_token()
+std::shared_ptr<empty_statement_node> parser::parse_empty_statement()
 {
-	//TODO: check for end?
+	// ;
 
+	consume_token(lexing::token_type::SYNTATIC_ELEMENT, ";");
+	return std::make_shared<empty_statement_node>();
+}
+
+
+bool parser::is_end()
+{
 	// Ignore comments
-	while(tokens.front().get_type() == lexing::token_type::COMMENT)
+	while(tokens.size() != 0 && tokens.front().get_type() == lexing::token_type::COMMENT)
 	{
 		tokens.pop();
 	}
+
+	return tokens.size() == 0;
+}
+
+
+const lexing::token& parser::peek_token()
+{
+	if (is_end())
+		throw end_error();
 	
 	return tokens.front();
 }
@@ -384,7 +586,7 @@ unexpected_token_type_error::unexpected_token_type_error(
 	const lexing::token_type& got) noexcept:
 	expected(expected),
 	got(got),
-	parsing_error("")//TODO
+	parsing_error("Unexpected token type: expected: \"" + lexing::to_string(expected) + "\", got: \"" + lexing::to_string(got) + "\".")
 { }
 
 
@@ -405,7 +607,7 @@ unexpected_token_value_error::unexpected_token_value_error(
 	const std::string& got) noexcept:
 	expected(expected),
 	got(got),
-	parsing_error("")//TODO
+	parsing_error("Unexpected token: expected: \"" + expected + "\", got: \"" + got + "\".")
 { }
 
 
@@ -422,5 +624,5 @@ const std::string& unexpected_token_value_error::get_got() const noexcept
 
 
 end_error::end_error() noexcept:
-	parsing_error("") //TODO
+	parsing_error("End of token queue reached.")
 { }
