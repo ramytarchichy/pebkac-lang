@@ -71,16 +71,34 @@ std::string ast::to_json(const std::vector<std::shared_ptr<T>>& vec)
 function_type_node::function_type_node(
 	const std::unordered_set<specifier>& specifiers,
 	const std::vector<std::shared_ptr<type_node>>& parameters,
-	const std::shared_ptr<type_node>& output) noexcept:
+	const std::shared_ptr<type_node>& return_type) noexcept:
 	specifiers(specifiers),
 	parameters(parameters),
-	output(output)
+	return_type(return_type)
 { }
+
+
+const std::unordered_set<specifier>& function_type_node::get_specifiers() const noexcept
+{
+	return specifiers;
+}
+
+
+const std::vector<std::shared_ptr<type_node>>& function_type_node::get_parameters() const noexcept
+{
+	return parameters;
+}
+
+
+const std::shared_ptr<type_node>& function_type_node::get_return_type() const noexcept
+{
+	return return_type;
+}
 
 
 std::string function_type_node::to_json() const
 {
-	return "{\"node\":\"function_type\", \"specifiers\":" + ::to_json(specifiers) + ", \"parameters\":" + ::to_json(parameters) + ", \"output\":" + output->to_json() + "}";
+	return "{\"node\":\"function_type\", \"specifiers\":" + ::to_json(specifiers) + ", \"parameters\":" + ::to_json(parameters) + ", \"return_type\":" + return_type->to_json() + "}";
 }
 
 
@@ -88,6 +106,12 @@ identifier_node::identifier_node(
 	const std::string& value) noexcept:
 	value(value)
 { }
+
+
+const std::string& identifier_node::get_value() const noexcept
+{
+	return value;
+}
 
 
 std::string identifier_node::to_json() const
@@ -102,6 +126,12 @@ numeric_literal_node::numeric_literal_node(
 { }
 
 
+long long numeric_literal_node::get_value() const noexcept
+{
+	return value;
+}
+
+
 std::string numeric_literal_node::to_json() const
 {
 	return "{\"node\":\"numeric_literal\", \"value\":" + std::to_string(value) + "}";
@@ -112,6 +142,12 @@ boolean_literal_node::boolean_literal_node(
 	bool value) noexcept:
 	value(value)
 { }
+
+
+bool boolean_literal_node::get_value() const noexcept
+{
+	return value;
+}
 
 
 std::string boolean_literal_node::to_json() const
@@ -126,6 +162,12 @@ group_node::group_node(
 { }
 
 
+const std::shared_ptr<expression_node>& group_node::get_expression() const noexcept
+{
+	return expression;
+}
+
+
 std::string group_node::to_json() const
 {
 	return "{\"node\":\"group\", \"expression\":" + expression->to_json() + "}";
@@ -138,6 +180,18 @@ unary_operator_node::unary_operator_node(
 	operation(operation),
 	operand(operand)
 { }
+
+
+unary_operation unary_operator_node::get_operation() const noexcept
+{
+	return operation;
+}
+
+
+const std::shared_ptr<expression_node>& unary_operator_node::get_operand() const noexcept
+{
+	return operand;
+}
 
 
 std::string unary_operator_node::to_json() const
@@ -156,6 +210,24 @@ operator_node::operator_node(
 { }
 
 
+operation operator_node::get_operation() const noexcept
+{
+	return operation;
+}
+
+
+const std::shared_ptr<expression_node>& operator_node::get_operand_a() const noexcept
+{
+	return operand_a;
+}
+
+
+const std::shared_ptr<expression_node>& operator_node::get_operand_b() const noexcept
+{
+	return operand_b;
+}
+
+
 std::string operator_node::to_json() const
 {
 	return "{\"node\":\"operator\", \"operation\":" + ::to_json(operation) + ", \"operand_a\":" + operand_a->to_json() + ", \"operand_b\":" + operand_b->to_json() + "}";
@@ -166,6 +238,12 @@ block_node::block_node(
 	const std::vector<std::shared_ptr<statement_node>>& statements) noexcept:
 	statements(statements)
 { }
+
+
+const std::vector<std::shared_ptr<statement_node>>& block_node::get_statements() const noexcept
+{
+	return statements;
+}
 
 
 std::string block_node::to_json() const
@@ -184,6 +262,23 @@ conditional_node::conditional_node(
 { }
 
 
+const std::shared_ptr<expression_node>& conditional_node::get_condition() const noexcept
+{
+	return condition;
+}
+
+const std::shared_ptr<statement_node>& conditional_node::get_branch_true() const noexcept
+{
+	return branch_true;
+}
+
+
+const std::shared_ptr<statement_node>& conditional_node::get_branch_false() const noexcept
+{
+	return branch_false;
+}
+
+
 std::string conditional_node::to_json() const
 {
 	return "{\"node\":\"conditional\", \"condition\":" + condition->to_json() + ", \"branch_true\":" + branch_true->to_json() + ", \"branch_false\":" + (branch_false?branch_false->to_json():"null") + "}";
@@ -198,6 +293,23 @@ conditional_expression_node::conditional_expression_node(
 	value_true(value_true),
 	value_false(value_false)
 { }
+
+
+const std::shared_ptr<expression_node>& conditional_expression_node::get_condition() const noexcept
+{
+	return condition;
+}
+
+const std::shared_ptr<expression_node>& conditional_expression_node::get_value_true() const noexcept
+{
+	return value_true;
+}
+
+
+const std::shared_ptr<expression_node>& conditional_expression_node::get_value_false() const noexcept
+{
+	return value_false;
+}
 
 
 std::string conditional_expression_node::to_json() const
@@ -216,9 +328,27 @@ let_node::let_node(
 { }
 
 
+const std::string& let_node::get_name() const noexcept
+{
+	return name;
+}
+
+
+const std::shared_ptr<type_node>& let_node::get_type() const noexcept
+{
+	return type;
+}
+
+
+const std::shared_ptr<expression_node>& let_node::get_value() const noexcept
+{
+	return value;
+}
+
+
 std::string let_node::to_json() const
 {
-	return "{\"node\":\"let\", \"name\":\"" + name + "\", \"type\":" + type->to_json() + ", \"value\":" + value->to_json() + "}";
+	return "{\"node\":\"let\", \"name\":\"" + name + "\", \"type\":" + (type?type->to_json():"null") + ", \"value\":" + value->to_json() + "}";
 }
 
 
@@ -230,6 +360,24 @@ parameter_node::parameter_node(
 	type(type),
 	default_value(default_value)
 { }
+
+
+const std::string& parameter_node::get_name() const noexcept
+{
+	return name;
+}
+
+
+const std::shared_ptr<type_node>& parameter_node::get_type() const noexcept
+{
+	return type;
+}
+
+
+const std::shared_ptr<expression_node>& parameter_node::get_default_value() const noexcept
+{
+	return default_value;
+}
 
 
 std::string parameter_node::to_json() const
@@ -244,6 +392,18 @@ lambda_node::lambda_node(
 	parameters(parameters),
 	statements(statements)
 { }
+
+
+const std::vector<std::shared_ptr<parameter_node>>& lambda_node::get_parameters() const noexcept
+{
+	return parameters;
+}
+
+
+const std::vector<std::shared_ptr<statement_node>>& lambda_node::get_statements() const noexcept
+{
+	return statements;
+}
 
 
 std::string lambda_node::to_json() const
@@ -266,6 +426,36 @@ function_node::function_node(
 { }
 
 
+const std::unordered_set<specifier>& function_node::get_specifiers() const noexcept
+{
+	return specifiers;
+}
+
+
+const std::string& function_node::get_name() const noexcept
+{
+	return name;
+}
+
+
+const std::vector<std::shared_ptr<parameter_node>>& function_node::get_parameters() const noexcept
+{
+	return parameters;
+}
+
+
+const std::shared_ptr<type_node>& function_node::get_return_type() const noexcept
+{
+	return return_type;
+}
+
+
+const std::shared_ptr<block_node>& function_node::get_body() const noexcept
+{
+	return body;
+}
+
+
 std::string function_node::to_json() const
 {
 	return "{\"node\":\"function\", \"specifiers\":" + ::to_json(specifiers) + ", \"name\":\"" + name + "\", \"parameters\":" + ::to_json(parameters) + ", \"return_type\":" + return_type->to_json() + ", \"body\":" + body->to_json() + "}";
@@ -280,6 +470,18 @@ function_call_node::function_call_node(
 { }
 
 
+const std::shared_ptr<expression_node>& function_call_node::get_function() const noexcept
+{
+	return function;
+}
+
+
+const std::vector<std::shared_ptr<expression_node>>& function_call_node::get_arguments() const noexcept
+{
+	return arguments;
+}
+
+
 std::string function_call_node::to_json() const
 {
 	return "{\"node\":\"function_call\", \"function\":" + function->to_json() + ", \"arguments\":" + ::to_json(arguments) + "}";
@@ -290,6 +492,12 @@ return_node::return_node(
 	const std::shared_ptr<expression_node>& value) noexcept:
 	value(value)
 { }
+
+
+const std::shared_ptr<expression_node>& return_node::get_value() const noexcept
+{
+	return value;
+}
 
 
 std::string return_node::to_json() const

@@ -9,7 +9,8 @@ This is a simple compiler/interpreter for a VERY basic functional programming la
 - Purely functional programming
 - Higher-order functions
 - Lambda functions
-- Strong typing
+- Strong typing (TODO)
+- Type inference
 
 I know functional programming usually involves tail recursion optimization and other things... I'm not going to bother implementing any of that because I have a deadline to meet, and no one will ever use this thing afterwards anyway (I hope).
 

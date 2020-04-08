@@ -401,11 +401,21 @@ std::shared_ptr<conditional_expression_node> parser::parse_conditional_expressio
 
 std::shared_ptr<let_node> parser::parse_let()
 {
-	// let <name> : <type> = <value>;
+	// let <name> [: <type>] = <value>;
+
+	// Name
 	consume_token(lexing::token_type::KEYWORD, "let");
-	const std::string& name = consume_token(lexing::token_type::IDENTIFIER).get_value();
-	consume_token(lexing::token_type::SYNTATIC_ELEMENT, ":");
-	const std::shared_ptr<type_node> type = parse_type();
+	const std::string name = consume_token(lexing::token_type::IDENTIFIER).get_value();
+
+	// Type
+	std::shared_ptr<type_node> type = nullptr;
+	if (peek_token() == lexing::token(lexing::token_type::SYNTATIC_ELEMENT, ":"))
+	{
+		consume_token();
+		type = parse_type();
+	}
+
+	// Value
 	consume_token(lexing::token_type::SYNTATIC_ELEMENT, "=");
 	const std::shared_ptr<expression_node> value = parse_expression();
 	consume_token(lexing::token_type::SYNTATIC_ELEMENT, ";");

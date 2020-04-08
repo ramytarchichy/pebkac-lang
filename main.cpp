@@ -6,6 +6,7 @@
 
 #include "lexing.hpp"
 #include "ast.hpp"
+#include "codegen.hpp"
 
 using namespace pebkac;
 
@@ -27,6 +28,10 @@ int main(int argc, const char** argv)
 
 	//Print AST
 	std::cout << "{\"node\":\"top\", \"statements\":" << ast::to_json(statements) << "}" << std::endl;
+
+	//Print C++
+	codegen::generator g(statements);
+	std::cout << std::endl << std::endl << g.get_cpp() << std::endl;
 
 	return EXIT_SUCCESS;
 }
