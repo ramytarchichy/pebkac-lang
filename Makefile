@@ -1,5 +1,5 @@
-COMPILE_FILES=main.cpp lexing.cpp ast.cpp nodes.cpp codegen.cpp
-DEPEND_FILES=$(COMPILE_FILES) Makefile lexing.hpp ast.hpp nodes.hpp codegen.hpp
+COMPILE_FILES=main.cpp lexing.cpp ast.cpp nodes.cpp codegen.cpp serialization.cpp
+DEPEND_FILES=$(COMPILE_FILES) Makefile lexing.hpp ast.hpp nodes.hpp codegen.hpp serialization.hpp
 
 OUT_FILE=pebkacc
 DBG_FILE=$(OUT_FILE)_dbg
@@ -16,12 +16,12 @@ $(DBG_FILE): $(DEPEND_FILES)
 .PHONY: run debug clean all
 
 run: $(OUT_FILE)
-	./$(OUT_FILE) test.pebkac
+	- ./$(OUT_FILE) test.pebkac $(TARGET)
 
 debug: $(DBG_FILE)
-	./$(DBG_FILE) test.pebkac
+	- ./$(DBG_FILE) test.pebkac $(TARGET)
 
 clean:
-	rm -rf $(OUT_FILE) $(DBG_FILE)
+	- rm -rf $(OUT_FILE) $(DBG_FILE)
 
 all: $(OUT_FILE) $(DBG_FILE)

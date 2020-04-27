@@ -8,6 +8,10 @@ using namespace pebkac;
 using namespace pebkac::lexing;
 
 
+//This allows the use of "..."s to create an std::string instead of a char*
+using namespace std::string_literals;
+
+
 token::token(
 	token_type type,
 	const std::string& value) noexcept:
@@ -37,6 +41,15 @@ const token_type& token::get_type() const noexcept
 const std::string& token::get_value() const noexcept
 {
 	return value;
+}
+
+
+std::shared_ptr<serialized> token::serialize() const
+{
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("type"s, to_string(type));
+	*obj += std::make_pair("value"s, value);
+	return obj;
 }
 
 

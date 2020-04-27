@@ -45,7 +45,7 @@ std::string generator::get_cpp(const std::shared_ptr<ast::type_node>& ptr)
 		return "const std::function<" + get_cpp(cast->get_return_type()) + "(" + get_cpp(cast->get_parameters(), "", ", ") + ")>";
 	}
 
-	throw std::runtime_error("WTF BRO (type): " + ptr->to_json());
+	throw std::runtime_error("WTF (type)");
 }
 
 
@@ -173,7 +173,7 @@ std::string generator::get_cpp(const std::shared_ptr<ast::expression_node>& ptr)
 		return "(" + get_cpp(cast->get_condition()) + "?(" + get_cpp(cast->get_value_true()) + "):(" + get_cpp(cast->get_value_false()) + "))";
 	}
 	
-	throw std::runtime_error("WTF BRO (expression): " + ptr->to_json());
+	throw std::runtime_error("WTF BRO (expression)");
 }
 
 
@@ -215,7 +215,7 @@ std::string generator::get_cpp(const std::shared_ptr<ast::statement_node>& ptr)
 		return "\n{" + get_cpp(cast->get_statements(), "\n\t", "") + "\n}";
 	}
 
-	throw std::runtime_error("WTF BRO (statement): " + ptr->to_json());
+	throw std::runtime_error("WTF BRO (statement)");
 }
 
 

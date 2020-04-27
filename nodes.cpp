@@ -5,66 +5,56 @@
 using namespace pebkac;
 using namespace pebkac::ast;
 
-// TODO: move all this JSON stuff into another file?
+//This allows the use of "..."s to create an std::string instead of a char*
+using namespace std::string_literals;
 
-std::string ast::to_json(specifier s)
+
+std::string to_string(specifier s)
 {
-	if (s == specifier::IO) return "\"IO\"";
+	if (s == specifier::IO) return "IO";
 
 	throw std::runtime_error("JSON: unknown specifier");
 }
 
 
-std::string ast::to_json(const std::unordered_set<specifier>& specifiers)
+std::vector<std::string> to_string(const std::unordered_set<specifier>& specifiers)
 {
-	std::string str = "";
+	std::vector<std::string> v = {};
 	for(specifier s : specifiers)
 	{
-		str += (str.length()?", ":"") + to_json(s);
+		v.push_back(to_string(s));
 	}
-	return "[" + str + "]";
+	return v;
 }
 
 
-std::string ast::to_json(operation op)
+std::string to_string(operation op)
 {
-	if (op == operation::AND) return "\"AND\"";
-	if (op == operation::OR) return "\"OR\"";
-	if (op == operation::ADD) return "\"ADD\"";
-	if (op == operation::SUBTRACT) return "\"SUBTRACT\"";
-	if (op == operation::MULTIPLY) return "\"MULTIPLY\"";
-	if (op == operation::DIVIDE) return "\"DIVIDE\"";
-	if (op == operation::MODULUS) return "\"MODULUS\"";
-	if (op == operation::EQUAL) return "\"EQUAL\"";
-	if (op == operation::NOT_EQUAL) return "\"NOT_EQUAL\"";
-	if (op == operation::LESS_THAN) return "\"LESS_THAN\"";
-	if (op == operation::GREATER_THAN) return "\"GREATER_THAN\"";
-	if (op == operation::LESS_OR_EQUAL) return "\"LESS_OR_EQUAL\"";
-	if (op == operation::GREATER_OR_EQUAL) return "\"GREATER_OR_EQUAL\"";
+	if (op == operation::AND) return "AND";
+	if (op == operation::OR) return "OR";
+	if (op == operation::ADD) return "ADD";
+	if (op == operation::SUBTRACT) return "SUBTRACT";
+	if (op == operation::MULTIPLY) return "MULTIPLY";
+	if (op == operation::DIVIDE) return "DIVIDE";
+	if (op == operation::MODULUS) return "MODULUS";
+	if (op == operation::EQUAL) return "EQUAL";
+	if (op == operation::NOT_EQUAL) return "NOT_EQUAL";
+	if (op == operation::LESS_THAN) return "LESS_THAN";
+	if (op == operation::GREATER_THAN) return "GREATER_THAN";
+	if (op == operation::LESS_OR_EQUAL) return "LESS_OR_EQUAL";
+	if (op == operation::GREATER_OR_EQUAL) return "GREATER_OR_EQUAL";
 
 	throw std::runtime_error("JSON: unknown operation");
 }
 
 
-std::string ast::to_json(unary_operation op)
+std::string to_string(unary_operation op)
 {
-	if (op == unary_operation::PLUS) return "\"PLUS\"";
-	if (op == unary_operation::MINUS) return "\"MINUS\"";
-	if (op == unary_operation::NOT) return "\"NOT\"";
+	if (op == unary_operation::PLUS) return "PLUS";
+	if (op == unary_operation::MINUS) return "MINUS";
+	if (op == unary_operation::NOT) return "NOT";
 
 	throw std::runtime_error("JSON: unknown unary operation");
-}
-
-
-template<class T>
-std::string ast::to_json(const std::vector<std::shared_ptr<T>>& vec)
-{
-	std::string str = "";
-	for(const std::shared_ptr<T>& i : vec)
-	{
-		str += (str.length()?", ":"") + i->to_json();
-	}
-	return "[" + str + "]";
 }
 
 
@@ -96,9 +86,14 @@ const std::shared_ptr<type_node>& function_type_node::get_return_type() const no
 }
 
 
-std::string function_type_node::to_json() const
+std::shared_ptr<serialized> function_type_node::serialize() const
 {
-	return "{\"node\":\"function_type\", \"specifiers\":" + ::to_json(specifiers) + ", \"parameters\":" + ::to_json(parameters) + ", \"return_type\":" + return_type->to_json() + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "function_type"s);
+	*obj += std::make_pair("specifiers"s, to_string(specifiers));
+	*obj += std::make_pair("parameters"s, parameters);
+	*obj += std::make_pair("return_type"s, return_type);
+	return obj;
 }
 
 
@@ -114,9 +109,12 @@ const std::string& identifier_node::get_value() const noexcept
 }
 
 
-std::string identifier_node::to_json() const
+std::shared_ptr<serialized> identifier_node::serialize() const
 {
-	return "{\"node\":\"identifier\", \"value\":\"" + value + "\"}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "identifier"s);
+	*obj += std::make_pair("value"s, value);
+	return obj;
 }
 
 
@@ -132,9 +130,12 @@ long long numeric_literal_node::get_value() const noexcept
 }
 
 
-std::string numeric_literal_node::to_json() const
+std::shared_ptr<serialized> numeric_literal_node::serialize() const
 {
-	return "{\"node\":\"numeric_literal\", \"value\":" + std::to_string(value) + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "numeric_literal"s);
+	*obj += std::make_pair("value"s, value);
+	return obj;
 }
 
 
@@ -150,9 +151,12 @@ bool boolean_literal_node::get_value() const noexcept
 }
 
 
-std::string boolean_literal_node::to_json() const
+std::shared_ptr<serialized> boolean_literal_node::serialize() const
 {
-	return "{\"node\":\"boolean_literal\", \"value\":" + std::string(value?"true":"false") + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "boolean_literal"s);
+	*obj += std::make_pair("value"s, value);
+	return obj;
 }
 
 
@@ -168,9 +172,12 @@ const std::shared_ptr<expression_node>& group_node::get_expression() const noexc
 }
 
 
-std::string group_node::to_json() const
+std::shared_ptr<serialized> group_node::serialize() const
 {
-	return "{\"node\":\"group\", \"expression\":" + expression->to_json() + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "group"s);
+	*obj += std::make_pair("expression"s, expression);
+	return obj;
 }
 
 
@@ -194,9 +201,13 @@ const std::shared_ptr<expression_node>& unary_operator_node::get_operand() const
 }
 
 
-std::string unary_operator_node::to_json() const
+std::shared_ptr<serialized> unary_operator_node::serialize() const
 {
-	return "{\"node\":\"unary_operation\", \"operation\":" + ::to_json(operation) + ", \"operand\":" + operand->to_json() + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "unary_operator"s);
+	*obj += std::make_pair("operation"s, to_string(operation));
+	*obj += std::make_pair("operand"s, operand);
+	return obj;
 }
 
 
@@ -228,9 +239,14 @@ const std::shared_ptr<expression_node>& operator_node::get_operand_b() const noe
 }
 
 
-std::string operator_node::to_json() const
+std::shared_ptr<serialized> operator_node::serialize() const
 {
-	return "{\"node\":\"operator\", \"operation\":" + ::to_json(operation) + ", \"operand_a\":" + operand_a->to_json() + ", \"operand_b\":" + operand_b->to_json() + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "operator"s);
+	*obj += std::make_pair("operation"s, to_string(operation));
+	*obj += std::make_pair("operand_a"s, operand_a);
+	*obj += std::make_pair("operand_b"s, operand_b);
+	return obj;
 }
 
 
@@ -246,9 +262,12 @@ const std::vector<std::shared_ptr<statement_node>>& block_node::get_statements()
 }
 
 
-std::string block_node::to_json() const
+std::shared_ptr<serialized> block_node::serialize() const
 {
-	return "{\"node\":\"block\", \"statements\":" + ::to_json(statements) + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "block"s);
+	*obj += std::make_pair("statements"s, statements);
+	return obj;
 }
 
 
@@ -279,9 +298,14 @@ const std::shared_ptr<statement_node>& conditional_node::get_branch_false() cons
 }
 
 
-std::string conditional_node::to_json() const
+std::shared_ptr<serialized> conditional_node::serialize() const
 {
-	return "{\"node\":\"conditional\", \"condition\":" + condition->to_json() + ", \"branch_true\":" + branch_true->to_json() + ", \"branch_false\":" + (branch_false?branch_false->to_json():"null") + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "conditional"s);
+	*obj += std::make_pair("condition"s, condition);
+	*obj += std::make_pair("branch_true"s, branch_true);
+	*obj += std::make_pair("branch_false"s, branch_false);
+	return obj;
 }
 
 
@@ -312,9 +336,14 @@ const std::shared_ptr<expression_node>& conditional_expression_node::get_value_f
 }
 
 
-std::string conditional_expression_node::to_json() const
+std::shared_ptr<serialized> conditional_expression_node::serialize() const
 {
-	return "{\"node\":\"conditional_expression\", \"condition\":" + condition->to_json() + ", \"value_true\":" + value_true->to_json() + ", \"value_false\":" + value_false->to_json() + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "conditional_expression"s);
+	*obj += std::make_pair("condition"s, condition);
+	*obj += std::make_pair("value_true"s, value_true);
+	*obj += std::make_pair("value_false"s, value_false);
+	return obj;
 }
 
 
@@ -346,9 +375,14 @@ const std::shared_ptr<expression_node>& let_node::get_value() const noexcept
 }
 
 
-std::string let_node::to_json() const
+std::shared_ptr<serialized> let_node::serialize() const
 {
-	return "{\"node\":\"let\", \"name\":\"" + name + "\", \"type\":" + (type?type->to_json():"null") + ", \"value\":" + value->to_json() + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "let"s);
+	*obj += std::make_pair("name"s, name);
+	*obj += std::make_pair("type"s, type);
+	*obj += std::make_pair("value"s, value);
+	return obj;
 }
 
 
@@ -380,9 +414,14 @@ const std::shared_ptr<expression_node>& parameter_node::get_default_value() cons
 }
 
 
-std::string parameter_node::to_json() const
+std::shared_ptr<serialized> parameter_node::serialize() const
 {
-	return "{\"node\":\"parameter\", \"name\":\"" + name + "\", \"type\":" + type->to_json() + (default_value?", \"default_value\":" + default_value->to_json():"") + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "parameter"s);
+	*obj += std::make_pair("name"s, name);
+	*obj += std::make_pair("type"s, type);
+	*obj += std::make_pair("default_value"s, default_value);
+	return obj;
 }
 
 
@@ -406,9 +445,13 @@ const std::vector<std::shared_ptr<statement_node>>& lambda_node::get_statements(
 }
 
 
-std::string lambda_node::to_json() const
+std::shared_ptr<serialized> lambda_node::serialize() const
 {
-	return "{\"node\":\"lambda\", \"parameters\":" + ::to_json(parameters) + ", \"statement\":" + ::to_json(statements) + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "lambda"s);
+	*obj += std::make_pair("parameters"s, parameters);
+	*obj += std::make_pair("statements"s, statements);
+	return obj;
 }
 
 
@@ -456,9 +499,16 @@ const std::shared_ptr<block_node>& function_node::get_body() const noexcept
 }
 
 
-std::string function_node::to_json() const
+std::shared_ptr<serialized> function_node::serialize() const
 {
-	return "{\"node\":\"function\", \"specifiers\":" + ::to_json(specifiers) + ", \"name\":\"" + name + "\", \"parameters\":" + ::to_json(parameters) + ", \"return_type\":" + return_type->to_json() + ", \"body\":" + body->to_json() + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "function"s);
+	*obj += std::make_pair("specifiers"s, to_string(specifiers));
+	*obj += std::make_pair("name"s, name);
+	*obj += std::make_pair("parameters"s, parameters);
+	*obj += std::make_pair("return_type"s, return_type);
+	*obj += std::make_pair("body"s, body);
+	return obj;
 }
 
 
@@ -482,9 +532,13 @@ const std::vector<std::shared_ptr<expression_node>>& function_call_node::get_arg
 }
 
 
-std::string function_call_node::to_json() const
+std::shared_ptr<serialized> function_call_node::serialize() const
 {
-	return "{\"node\":\"function_call\", \"function\":" + function->to_json() + ", \"arguments\":" + ::to_json(arguments) + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "function_call"s);
+	*obj += std::make_pair("function"s, function);
+	*obj += std::make_pair("arguments"s, arguments);
+	return obj;
 }
 
 
@@ -500,9 +554,12 @@ const std::shared_ptr<expression_node>& return_node::get_value() const noexcept
 }
 
 
-std::string return_node::to_json() const
+std::shared_ptr<serialized> return_node::serialize() const
 {
-	return "{\"node\":\"return\", \"value\":" + value->to_json() + "}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "return"s);
+	*obj += std::make_pair("value"s, value);
+	return obj;
 }
 
 
@@ -510,7 +567,9 @@ empty_statement_node:: empty_statement_node() noexcept
 { }
 
 
-std::string empty_statement_node::to_json() const
+std::shared_ptr<serialized> empty_statement_node::serialize() const
 {
-	return "{\"node\":\"empty\"}";
+	auto obj = std::make_shared<serialized_object>();
+	*obj += std::make_pair("node"s, "empty_statement"s);
+	return obj;
 }

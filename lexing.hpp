@@ -1,5 +1,7 @@
 #pragma once
 
+#include "serialization.hpp"
+
 #include <vector>
 #include <queue>
 #include <array>
@@ -21,7 +23,7 @@ namespace pebkac::lexing
 
 	std::string to_string(token_type t);
 
-	class token
+	class token: public serializable
 	{
 	public:
 		token(token_type type, const std::string& value) noexcept;
@@ -31,6 +33,8 @@ namespace pebkac::lexing
 
 		const token_type& get_type() const noexcept;
 		const std::string& get_value() const noexcept;
+
+		std::shared_ptr<serialized> serialize() const;
 
 	private:
 		const token_type type;

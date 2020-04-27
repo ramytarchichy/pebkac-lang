@@ -1,5 +1,7 @@
 #pragma once
 
+#include "serialization.hpp"
+
 #include <memory>
 #include <vector>
 #include <unordered_set>
@@ -38,21 +40,7 @@ namespace pebkac::ast
 	};
 
 
-	std::string to_json(specifier s);
-	std::string to_json(const std::unordered_set<specifier>& specifiers);
-	std::string to_json(operation op);
-	std::string to_json(unary_operation op);
-	template<class T>
-	std::string to_json(const std::vector<std::shared_ptr<T>>& vec);
-
-
-	class node
-	{
-	public:
-		virtual std::string to_json() const = 0;
-	};
-
-
+	class node: public serializable { };
 	class statement_node: public node { };
 	class expression_node: public statement_node { };
 	class type_node: public node { };
@@ -67,7 +55,7 @@ namespace pebkac::ast
 			const std::shared_ptr<type_node>& output
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::unordered_set<specifier>& get_specifiers() const noexcept;
@@ -88,7 +76,7 @@ namespace pebkac::ast
 			const std::string& value
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::string& get_value() const noexcept;
@@ -105,7 +93,7 @@ namespace pebkac::ast
 			long long value
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		long long get_value() const noexcept;
@@ -122,7 +110,7 @@ namespace pebkac::ast
 			bool value 
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		bool get_value() const noexcept;
@@ -139,7 +127,7 @@ namespace pebkac::ast
 			const std::shared_ptr<expression_node>& expression
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::shared_ptr<expression_node>& get_expression() const noexcept;
@@ -157,7 +145,7 @@ namespace pebkac::ast
 			const std::shared_ptr<expression_node>& operand
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		unary_operation get_operation() const noexcept;
@@ -178,7 +166,7 @@ namespace pebkac::ast
 			const std::shared_ptr<expression_node>& operand_b
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		operation get_operation() const noexcept;
@@ -199,7 +187,7 @@ namespace pebkac::ast
 			const std::vector<std::shared_ptr<statement_node>>& statements
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::vector<std::shared_ptr<statement_node>>& get_statements() const noexcept;
@@ -218,7 +206,7 @@ namespace pebkac::ast
 			const std::shared_ptr<statement_node>& branch_false
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::shared_ptr<expression_node>& get_condition() const noexcept;
@@ -241,7 +229,7 @@ namespace pebkac::ast
 			const std::shared_ptr<expression_node>& value_false
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::shared_ptr<expression_node>& get_condition() const noexcept;
@@ -264,7 +252,7 @@ namespace pebkac::ast
 			const std::shared_ptr<expression_node> value
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::string& get_name() const noexcept;
@@ -287,7 +275,7 @@ namespace pebkac::ast
 			const std::shared_ptr<expression_node>& default_value
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::string& get_name() const noexcept;
@@ -309,7 +297,7 @@ namespace pebkac::ast
 			const std::vector<std::shared_ptr<statement_node>>& statements
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::vector<std::shared_ptr<parameter_node>>& get_parameters() const noexcept;
@@ -332,7 +320,7 @@ namespace pebkac::ast
 			const std::shared_ptr<block_node>& body
 		) noexcept;
 		
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::unordered_set<specifier>& get_specifiers() const noexcept;
@@ -358,7 +346,7 @@ namespace pebkac::ast
 			const std::vector<std::shared_ptr<expression_node>>& arguments
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::shared_ptr<expression_node>& get_function() const noexcept;
@@ -377,7 +365,7 @@ namespace pebkac::ast
 			const std::shared_ptr<expression_node>& value
 		) noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 
 		// Getters
 		const std::shared_ptr<expression_node>& get_value() const noexcept;
@@ -392,6 +380,6 @@ namespace pebkac::ast
 	public:
 		empty_statement_node() noexcept;
 
-		std::string to_json() const;
+		std::shared_ptr<serialized> serialize() const;
 	};
 }
