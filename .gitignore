@@ -1,4 +1,6 @@
-.vscode
-pebkacc
-pebkacc_dbg
-test.pebkac
+.vs
+Debug
+PEBKACC/pebkacc
+PEBKACC/pebkacc_dbg
+PEBKACC/test.pebkac
+PEBKACC/Debug

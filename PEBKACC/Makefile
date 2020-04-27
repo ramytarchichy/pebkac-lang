@@ -1,4 +1,4 @@
-COMPILE_FILES=main.cpp lexing.cpp ast.cpp nodes.cpp codegen.cpp serialization.cpp
+COMPILE_FILES=PEBKACC.cpp lexing.cpp ast.cpp nodes.cpp codegen.cpp serialization.cpp
 DEPEND_FILES=$(COMPILE_FILES) Makefile lexing.hpp ast.hpp nodes.hpp codegen.hpp serialization.hpp
 
 OUT_FILE=pebkacc

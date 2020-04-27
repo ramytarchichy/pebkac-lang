@@ -1,5 +1,6 @@
 #include "ast.hpp"
 
+#include <stdexcept>
 #include <stack>
 
 using namespace pebkac;

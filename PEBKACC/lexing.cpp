@@ -3,6 +3,7 @@
 #include <regex>
 #include <limits>
 #include <algorithm>
+#include <stdexcept>
 
 using namespace pebkac;
 using namespace pebkac::lexing;

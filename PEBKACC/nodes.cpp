@@ -1,6 +1,7 @@
 #include "nodes.hpp"
 
 #include <numeric>
+#include <stdexcept>
 
 using namespace pebkac;
 using namespace pebkac::ast;

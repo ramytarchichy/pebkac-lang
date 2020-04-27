@@ -2,6 +2,7 @@
 #include "nodes.hpp"
 
 #include <memory>
+#include <stdexcept>
 
 using namespace pebkac;
 using namespace pebkac::codegen;
